@@ -17,7 +17,32 @@
 </head>
 <body class="fullscreen">
   <div class="container">
-    <h1 class="title">Hello World!</h1>
+    <h1 class="title">Welcome to Hyperscale!</h1>
+    deviceId: <input type="text" id="deviceId" placeholder="deviceId here">
+    <button id="connectButton" onclick="onConnectClick()">Connect</button>
+    <br/><br/>
+    <div id="control" hidden>
+      <div class="single-element row">
+        <button onclick="sendChannel.send('KEY_UP')"> &#5123;
+        </button>
+      </div>
+      <div class="multiple-element row">
+        <button onclick="sendChannel.send('KEY_LEFT')"> &#5130;
+        </button>
+        <button onclick="sendChannel.send('KEY_SELECT')"> &#9166;
+        </button>
+        <button onclick="sendChannel.send('KEY_RIGHT')"> &#5125;
+        </button>
+      </div>
+      <div class="single-element row">
+        <button onclick="sendChannel.send('KEY_DOWN')"> &#5121;
+        </button>
+      </div>
+      <div class="single-element row">
+        <button onclick="sendChannel.send('KEY_BACK')"> &#8617;
+          back   </button>
+      </div>
+    </div>
   </div>
   <script src="js/main.js"></script>
 </body>
