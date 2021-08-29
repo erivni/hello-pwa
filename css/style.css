@@ -1,23 +1,132 @@
-body {
-  font-family: sans-serif;
+:root {
+  --base-size: 30px;
+  --m-p-size: 5px;
 }
 
-/* Make content area fill the entire browser window */
-html,
-.fullscreen {
-  display: flex;
-  height: 100%;
+* {
   margin: 0;
   padding: 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+*.hidden {
+  visibility: collapse;
+  display: none;
+}
+
+body,
+html {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.header {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    margin-top: calc(var(--m-p-size) * 2);
+}
+
+.screen {
+  height: 100%;
   width: 100%;
+  display: flex;
+  place-items: center;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Center the content in the browser window */
-.container {
-  margin: auto;
+form {
+  display: grid;
+  flex-direction: row;
+}
+
+form > input:first-of-type {
+  margin-bottom: calc(var(--m-p-size) * 2);
+}
+
+form > input {
+  padding: var(--m-p-size);
+  font-size: calc(var(--base-size) / 1.5);
+}
+
+.remote {
+  max-width: calc(var(--base-size) * 2 * 3 + var(--base-size) * 2);
+  display: grid;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  gap: var(--base-size);
+  grid-gap: var(--base-size);
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas:
+    "  .    up     .  "
+    "left select right"
+    "  .   down    .  "
+    "back    .    home";
 }
 
-.title {
-  font-size: 3rem;
+.button > button {
+  font-size: var(--base-size);
+  width: calc(var(--base-size) * 2.5);
+  height: calc(var(--base-size) * 2.5);
+  border-radius: 50%;
+}
+
+.button.up {
+  grid-area: up;
+}
+.button.left {
+  grid-area: left;
+}
+.button.right {
+  grid-area: right;
+}
+.button.down {
+  grid-area: down;
+}
+.button.home {
+  grid-area: home;
+}
+.button.back {
+  grid-area: back;
+}
+.button.select {
+  grid-area: select;
+}
+
+.message {
+  display: grid;
+  flex-direction: row;
+  place-items: center;
+}
+
+.message > *:first-child {
+  margin-bottom: calc(var(--m-p-size) * 2);
+}
+
+#spinner {
+  display: inline-block;
+  width: calc(var(--base-size) * 2);
+  height: calc(var(--base-size) * 2);
+  border: var(--m-p-size) solid rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  border-top-color: #000;
+  animation: spin 1s ease-in-out infinite;
+  -webkit-animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes spin {
+  to {
+    -webkit-transform: rotate(360deg);
+  }
 }
