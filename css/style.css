@@ -6,7 +6,7 @@
 * {
   margin: 0;
   padding: 0;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
 }
 
 *.hidden {
@@ -19,16 +19,40 @@ html {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
 }
 
 .header {
-    position: fixed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100vw;
-    margin-top: calc(var(--m-p-size) * 2);
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  margin-top: calc(var(--m-p-size) * 2);
+}
+
+.footer {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  bottom: 0;
+  margin-bottom: calc(var(--m-p-size) * 2);
+}
+
+.footer > button {
+  outline: none;
+  background: none;
+  font-size: 1.17em;
+  font-weight: bold;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  height: max-content;
+  border: none;
+  width: 100%;
 }
 
 .screen {
@@ -45,58 +69,93 @@ form {
   flex-direction: row;
 }
 
-form > input:first-of-type {
-  margin-bottom: calc(var(--m-p-size) * 2);
-}
-
 form > input {
   padding: var(--m-p-size);
   font-size: calc(var(--base-size) / 1.5);
 }
 
 .remote {
-  max-width: calc(var(--base-size) * 2 * 3 + var(--base-size) * 2);
   display: grid;
+  grid-template-columns: repeat(1fr, 2);
+  grid-template-areas:
+    "navigation navigation"
+    " back home ";
+}
+
+.back {
+  grid-area: back;
+  /* text-align: center; */
+}
+.home {
+  grid-area: home;
+  text-align: end;
+}
+.home > button,
+.back > button {
+  outline: none;
+  margin-left: calc(var(--m-p-size) * 2);
+  margin-right: calc(var(--m-p-size) * 2);
+  background: none;
+  color: #7a7a7a;
+  font-size: 4em;
+  border: none;
+}
+
+.navigation {
+  grid-area: navigation;
+  background-color: transparent;
+  border-radius: 100%;
+  width: 90vw;
+  height: 90vw;
+  position: relative;
+  overflow: hidden;
+  transform: rotate(45deg);
+  border: 5px solid #7a7a7a;
+}
+
+.navigation > .button {
+  display: flex;
+  width: 50%;
+  height: 50%;
+  position: absolute;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  gap: var(--base-size);
-  grid-gap: var(--base-size);
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-areas:
-    "  .    up     .  "
-    "left select right"
-    "  .   down    .  "
-    "back    .    home";
+  outline: 5px solid #7a7a7a;
+  overflow: hidden;
+  background: white;
 }
 
-.button > button {
-  font-size: var(--base-size);
-  width: calc(var(--base-size) * 2.5);
-  height: calc(var(--base-size) * 2.5);
-  border-radius: 50%;
+.button.select {
+  width: 45%;
+  height: 45%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 100%;
+  border: 5px solid #7a7a7a;
+  outline: none;
 }
 
-.button.up {
-  grid-area: up;
+.navigation > .button > button {
+  transform: rotate(-45deg);
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+.button.top {
+  top: 0;
 }
 .button.left {
-  grid-area: left;
+  left: 0;
 }
 .button.right {
-  grid-area: right;
+  right: 0;
 }
-.button.down {
-  grid-area: down;
-}
-.button.home {
-  grid-area: home;
-}
-.button.back {
-  grid-area: back;
-}
-.button.select {
-  grid-area: select;
+.button.bottom {
+  bottom: 0;
 }
 
 .message {
