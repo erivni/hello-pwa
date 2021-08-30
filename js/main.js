@@ -26,6 +26,7 @@ window.onload = () => {
   const text = document.querySelector('#text')
   const spinner = document.querySelector('#spinner')
   const closeButton = document.querySelector('.footer > button')
+  let currentView = INITIAL
 
   // functions
 
@@ -46,6 +47,7 @@ window.onload = () => {
       case INITIAL:
         hide(closeButton)
         show(initial)
+        currentView = initial
         break;
 
       case CONNECTING:
@@ -54,16 +56,19 @@ window.onload = () => {
         reveal(spinner)
         show(messagePanel)
         reveal(closeButton)
+        currentView = messagePanel
         break;
 
       case CONNECTED:
         show(remote)
+        currentView = remote
         break;
 
       case FAILED_OR_CLOSED:
         text.innerHTML = FAILED_OR_CLOSED
         hide(spinner)
         show(messagePanel)
+        currentView = messagePanel
         break;
       default:
         console.log(`did not recognize message ${msg} to update the view by`)
@@ -210,4 +215,8 @@ window.onload = () => {
       connectToWebRTC(deviceId)
     }
   }
+
+  screen.orientation.addEventListener('change', () => {
+    show(currentView)
+  })
 }
