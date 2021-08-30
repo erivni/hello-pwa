@@ -178,6 +178,7 @@ window.onload = () => {
     const buttonId = b.getAttribute('id')
     const msg = `KEY_${buttonId.toUpperCase()}`
     b.addEventListener('click', (e) => {
+      e.preventDefault()
       console.log(msg)
       dataChannel.send(msg)
     })
@@ -196,11 +197,16 @@ window.onload = () => {
   })
 
   const deviceIdInput = document.querySelector('input#deviceId')
+  var deviceIdStored = localStorage.getItem('deviceId')
+  if (deviceIdStored) {
+    deviceIdInput.value = deviceIdStored
+  }
   if (form) {
     form.onsubmit = (e) => {
       e.preventDefault()
       e.stopPropagation()
       const deviceId = deviceIdInput.value
+      localStorage.setItem('deviceId', deviceId)
       connectToWebRTC(deviceId)
     }
   }
