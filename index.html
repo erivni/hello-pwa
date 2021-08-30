@@ -15,58 +15,64 @@
   <script src="js/main.js"></script>
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <link rel="apple-touch-icon" href="images/hyperscale-icon-152.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="white"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="white" />
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="msapplication-TileImage" content="images/hello-icon-144.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="msapplication-TileImage" content="images/hyperscale-icon-144.png">
   <meta name="msapplication-TileColor" content="#FFFFFF">
 </head>
 
 <body>
-<div class="header">
-  <h3>Hyperscale Remote Control</h3>
-</div>
-<div class="screen f-screen">
-  <form>
-    <input type="text" placeholder="your device id" id="deviceId">
-    <input type="submit" value="CONNECT">
-  </form>
-</div>
-
-<div class="screen m-screen">
-  <div class="message">
-    <div id="spinner"></div>
-    <div id="text"></div>
+  <div class="header">
+    <h3>Hyperscale Remote Control</h3>
   </div>
-</div>
+  <div class="screen f-screen">
+    <form>
+      <input type="text" placeholder="your device id" id="deviceId">
+    </form>
+  </div>
 
-<div class="screen r-screen">
-  <div class="remote">
-    <div class="button up">
-      <button id="up">&#8593;</button>
-    </div>
-    <div class="button left">
-      <button id="left">&#8592;</button>
-    </div>
-    <div class="button select">
-      <button id="select">&#10003;</button>
-    </div>
-    <div class="button right">
-      <button id="right">&#8594;</button>
-    </div>
-    <div class="button down">
-      <button id="down">&#8595;</button>
-    </div>
-    <div class="button home">
-      <button id="home">&#8962;</button>
-    </div>
-    <div class="button back">
-      <button id="back">&#8630;</button>
+  <div class="screen m-screen">
+    <div class="message">
+      <div id="spinner"></div>
+      <div id="text"></div>
     </div>
   </div>
-</div>
-</div>
+
+  <div class="screen r-screen">
+    <div class="remote">
+      <div class="navigation">
+        <div class="button top left">
+          <button id="up"><img src="images/arrow-up.png"></button>
+        </div>
+        <div class="button left bottom">
+          <button id="left"><img src="images/arrow-left.png"></button>
+        </div>
+        <div class="button right top">
+          <button id="right"><img src="images/arrow-right.png"></button>
+        </div>
+        <div class="button bottom right">
+          <button id="down"><img src="images/arrow-down.png"></button>
+        </div>
+        <div class="button select">
+          <button id="select"></button>
+        </div>
+      </div>
+      <div class="button home">
+        <button id="home">&#8962;</button>
+      </div>
+      <div class="button back">
+        <button id="back">&#8630;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="hidden">close</button>
+  </div>
+
 </body>
 
 </html>

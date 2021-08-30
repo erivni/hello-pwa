@@ -1,27 +1,31 @@
+const CONNECTING = "TRYING TO CONNECT"
+const CONNECTED = "CONNECTED"
+const DISCONNECTED = "DISCONNECT, PLEASE HOLD"
+const FAILED_OR_CLOSED = "FAILURE. CHECK YOUR DEVICE."
+const INITIAL = ""
+
 window.onload = () => {
+  // pwa
   'use strict';
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
-             .register('./sw.js');
+      .register('./sw.js');
   }
-}
 
-const CONNECTING = "TRYING TO CONNECT"
-const CONNECTED = "CONNECTED"
-const DISCONNECTED = "DISCONNECT, PLEASE HOLD"
-const FAIL_OR_CLOSED = "FAILURE. CHECK YOUR DEVICE."
-
-window.onload = () => {
   // connection
+  let peerConnection = null
   let dataChannel = null
+  let answerTimeout = null
 
   // elements
+  const initial = document.querySelector('.f-screen')
   const remote = document.querySelector('.r-screen')
   const form = document.querySelector('form')
   const messagePanel = document.querySelector('.m-screen')
   const text = document.querySelector('#text')
   const spinner = document.querySelector('#spinner')
+  const closeButton = document.querySelector('.footer > button')
 
   // functions
 
@@ -33,20 +37,31 @@ window.onload = () => {
     ele.classList.add('hidden')
   }
 
+  const reveal = (ele) => {
+    ele.classList.remove('hidden')
+  }
+
   const updateView = (msg) => {
     switch (msg) {
+      case INITIAL:
+        hide(closeButton)
+        show(initial)
+        break;
+
       case CONNECTING:
       case DISCONNECTED:
         text.innerHTML = msg
+        reveal(spinner)
         show(messagePanel)
+        reveal(closeButton)
         break;
 
       case CONNECTED:
         show(remote)
         break;
 
-      case FAIL_OR_CLOSED:
-        text.innerHTML = FAIL_OR_CLOSED
+      case FAILED_OR_CLOSED:
+        text.innerHTML = FAILED_OR_CLOSED
         hide(spinner)
         show(messagePanel)
         break;
@@ -59,15 +74,15 @@ window.onload = () => {
   const connectToWebRTC = (deviceId) => {
     updateView(CONNECTING)
     const signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
-    const peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
     dataChannel = peerConnection.createDataChannel('hyperscale', { ordered: true, maxPacketLifeTime: 3000 });
     dataChannel.onopen = () => { console.log("data channel has opened"); }
-    dataChannel.onclose = () => { console.log("data channel has closed"); }
+    dataChannel.onclose = (e) => { console.log("data channel has closed"); }
     peerConnection.addTransceiver('video', { 'direction': 'sendrecv' })
     peerConnection.addTransceiver('video', { 'direction': 'sendrecv' })
     peerConnection.addTransceiver('audio', { 'direction': 'sendrecv' })
     peerConnection.onconnectionstatechange = (e) => {
-      console.log({ e })
+      console.log(`connection state changed to ${peerConnection.connectionState}`)
       switch (peerConnection.connectionState) {
         case "connected":
           updateView(CONNECTED)
@@ -77,10 +92,9 @@ window.onload = () => {
           break;
         case "failed":
         case "closed":
-          updateView(FAIL_OR_CLOSED)
+          updateView(FAILED_OR_CLOSED)
           break;
       }
-      console.log(`connection state changed to ${peerConnection.connectionState}`)
     }
 
     peerConnection.onicecandidate = async (event) => {
@@ -133,11 +147,12 @@ window.onload = () => {
             console.log(`got answer for connectionId ${connectionId}. setting remote description`);
             await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(body)));
             console.log("after setting remote description");
+            clearTimeout(answerTimeout)
             return;
           }
           console.log(`failed to get answer error: ${response.status}, ${body}`)
           // if failed to get positive response, try again in a second
-          setTimeout(() => getAnswer(connectionId), 1000)
+          answerTimeout = setTimeout(() => getAnswer(connectionId), 1000)
         } catch (e) {
           this.console.log(`getAnswer error: ${e}`)
         }
@@ -154,7 +169,6 @@ window.onload = () => {
       }
     }
     peerConnection.createOffer().then(d => peerConnection.setLocalDescription(d)).catch(e => console.error(e));
-    console.log({ peerConnection })
   }
 
   // event listeners
@@ -167,6 +181,18 @@ window.onload = () => {
       console.log(msg)
       dataChannel.send(msg)
     })
+  })
+
+  closeButton.addEventListener('click', (e) => {
+    console.log({ peerConnection, dataChannel, answerTimeout });
+    if (peerConnection) {
+      console.log("closing peer connection")
+      peerConnection.close()
+    }
+    if (answerTimeout) {
+      clearTimeout(answerTimeout)
+    }
+    updateView(INITIAL)
   })
 
   const deviceIdInput = document.querySelector('input#deviceId')
