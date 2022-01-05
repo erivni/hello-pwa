@@ -131,6 +131,21 @@ form > input {
   background: white;
 }
 
+.click_animate {
+  animation: keyPressAnim 0.15s alternate;
+}
+
+.click_animate_error {
+  animation: keyPressAnimError 0.15s alternate;
+}
+
+@keyframes keyPressAnim {
+  to {background-color: #4287F5;}
+}
+
+@keyframes keyPressAnimError {
+  to {background-color: #FFA99A;}
+}
 .button.select {
   width: 45%;
   height: 45%;
@@ -214,3 +229,4 @@ form > input {
     justify-content: center;
   }
 }
+
