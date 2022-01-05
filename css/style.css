@@ -140,7 +140,7 @@ form > input {
 }
 
 @keyframes keyPressAnim {
-  to {background-color: #BDDE7A;}
+  to {background-color: #4287F5;}
 }
 
 @keyframes keyPressAnimError {
