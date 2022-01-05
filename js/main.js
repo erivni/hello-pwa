@@ -27,6 +27,7 @@ window.onload = () => {
   const spinner = document.querySelector('#spinner')
   const closeButton = document.querySelector('.footer > button')
   let currentView = INITIAL
+  let keyPressAudio = new Audio('./audio/press.wav');
 
   // functions
 
@@ -41,6 +42,26 @@ window.onload = () => {
   const reveal = (ele) => {
     ele.classList.remove('hidden')
   }
+  
+  const clickEffect = (el, success) => {
+    keyPressAudio.play();
+    if (navigator && navigator.vibrate) {
+        navigator.vibrate(150);
+    }
+    // Reset previous animation state which had already happened on the element.
+    el.style.animation = 'none';
+    el.offsetHeight; /* trigger reflow */
+    el.style.animation = null; 
+    el.classList.remove('click_animate');
+    el.classList.remove('click_animate_error');
+
+    if (success) {
+      el.classList.add('click_animate');
+    } else {
+      el.classList.add('click_animate_error');
+    }
+
+}
 
   const updateView = (msg) => {
     switch (msg) {
@@ -184,8 +205,14 @@ window.onload = () => {
     const msg = `KEY_${buttonId.toUpperCase()}`
     b.addEventListener('click', (e) => {
       e.preventDefault()
-      console.log(msg)
-      dataChannel.send(msg)
+      try {
+        dataChannel.send(msg)
+        console.log(msg)
+        clickEffect(b.parentElement, true);
+      } catch (err) {
+        console.error(`Failed to send message ${msg}, ${err.toString()}`);
+        clickEffect(b.parentElement, false);
+      }
     })
   })
 
