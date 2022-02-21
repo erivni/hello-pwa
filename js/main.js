@@ -42,7 +42,7 @@ window.onload = () => {
   const reveal = (ele) => {
     ele.classList.remove('hidden')
   }
-  
+
   const clickEffect = (el, success) => {
     keyPressAudio.play();
     if (navigator && navigator.vibrate) {
@@ -51,7 +51,7 @@ window.onload = () => {
     // Reset previous animation state which had already happened on the element.
     el.style.animation = 'none';
     el.offsetHeight; /* trigger reflow */
-    el.style.animation = null; 
+    el.style.animation = null;
     el.classList.remove('click_animate');
     el.classList.remove('click_animate_error');
 
@@ -97,16 +97,17 @@ window.onload = () => {
     }
   }
 
-  const connectToWebRTC = (deviceId) => {
+  const connectToWebRTC = (deviceId, useStun) => {
     updateView(CONNECTING)
     const signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
-    peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    let iceServersList = [];
+    if (useStun) {
+      iceServersList = [{urls: 'stun:stun.l.google.com:19302'}]
+    }
+    peerConnection = new RTCPeerConnection({ iceServers: iceServersList });
     dataChannel = peerConnection.createDataChannel('hyperscale', { ordered: true, maxPacketLifeTime: 3000 });
     dataChannel.onopen = () => { console.log("data channel has opened"); }
     dataChannel.onclose = (e) => { console.log("data channel has closed"); }
-    peerConnection.addTransceiver('video', { 'direction': 'sendrecv' })
-    peerConnection.addTransceiver('video', { 'direction': 'sendrecv' })
-    peerConnection.addTransceiver('audio', { 'direction': 'sendrecv' })
     peerConnection.onconnectionstatechange = (e) => {
       console.log(`connection state changed to ${peerConnection.connectionState}`)
       switch (peerConnection.connectionState) {
@@ -139,7 +140,7 @@ window.onload = () => {
             connectionId = JSON.parse(body).connectionId;
           }
           console.log(`got connectionId ${connectionId} from device id ${deviceId}`);
-          
+
           console.log(`sending offer with remote-control pluginType`);
           offer.pluginType = "remote-control";
           // send offer to signaling server
@@ -231,6 +232,7 @@ window.onload = () => {
   })
 
   const deviceIdInput = document.querySelector('input#deviceId')
+  const useStunInput = document.querySelector('input#useStun')
   var deviceIdStored = localStorage.getItem('deviceId')
   if (deviceIdStored) {
     deviceIdInput.value = deviceIdStored
@@ -240,8 +242,9 @@ window.onload = () => {
       e.preventDefault()
       e.stopPropagation()
       const deviceId = deviceIdInput.value
+      const useStun = useStunInput.checked
       localStorage.setItem('deviceId', deviceId)
-      connectToWebRTC(deviceId)
+      connectToWebRTC(deviceId, useStun)
     }
   }
 
