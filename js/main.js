@@ -139,7 +139,9 @@ window.onload = () => {
             connectionId = JSON.parse(body).connectionId;
           }
           console.log(`got connectionId ${connectionId} from device id ${deviceId}`);
-
+          
+          console.log(`sending offer with remote-control pluginType`);
+          offer.pluginType = "remote-control";
           // send offer to signaling server
           let sendOfferResponse = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-offer`, {
             method: 'put',
