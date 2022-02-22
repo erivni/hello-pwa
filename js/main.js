@@ -100,7 +100,7 @@ window.onload = () => {
   const connectToWebRTC = (deviceId) => {
     updateView(CONNECTING)
     const signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
-    peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    peerConnection = new RTCPeerConnection({ iceServers: [] });
     dataChannel = peerConnection.createDataChannel('hyperscale', { ordered: true, maxPacketLifeTime: 3000 });
     dataChannel.onopen = () => { console.log("data channel has opened"); }
     dataChannel.onclose = (e) => { console.log("data channel has closed"); }
