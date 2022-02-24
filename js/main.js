@@ -2,6 +2,7 @@ const CONNECTING = "TRYING TO CONNECT"
 const CONNECTED = "CONNECTED"
 const DISCONNECTED = "DISCONNECT, PLEASE HOLD"
 const FAILED_OR_CLOSED = "FAILURE. CHECK YOUR DEVICE."
+const CONNECT_TIMEOUT = "FAILURE. CONNECT TIMEOUT."
 const INITIAL = ""
 
 window.onload = () => {
@@ -61,7 +62,7 @@ window.onload = () => {
       el.classList.add('click_animate_error');
     }
 
-}
+  }
 
   const updateView = (msg) => {
     switch (msg) {
@@ -87,6 +88,8 @@ window.onload = () => {
 
       case FAILED_OR_CLOSED:
         text.innerHTML = FAILED_OR_CLOSED
+      case CONNECT_TIMEOUT:
+        text.innerHTML = CONNECT_TIMEOUT
         hide(spinner)
         show(messagePanel)
         currentView = messagePanel
@@ -125,6 +128,10 @@ window.onload = () => {
     }
 
     peerConnection.onicecandidate = async (event) => {
+      if (event.candidate != null) {
+        return //ignore event
+      }
+
       const sendOffer = async (offer) => {
         try {
           let connectionId;
@@ -167,21 +174,39 @@ window.onload = () => {
         }
 
       }
+
+      let stopPolling = false;
+
+      // abort connection if no debug-answer is available after 30s
+      const answerTotalTimeout = setTimeout(() => {
+        updateView(CONNECT_TIMEOUT);
+        stopPolling = true;
+        console.error(`failed to get answer after 30s, aborting connection..`);
+        setTimeout(() => {
+          location.reload();
+        }, 7000);
+      }, 30 * 1000)
+
       const getAnswer = async (connectionId) => {
         try {
           console.log("trying to get answer..");
           let response = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-answer`, { method: 'get' })
           let body = await response.text();
           if (response.ok && body !== "") {
+            clearTimeout(answerTimeout);
+            clearTimeout(answerTotalTimeout);
             console.log(`got answer for connectionId ${connectionId}. setting remote description`);
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(body)));
+            let answer = JSON.parse(body);
+            console.log(`got pluginId ${answer.pluginId}`);
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
             console.log("after setting remote description");
-            clearTimeout(answerTimeout)
             return;
           }
           console.log(`failed to get answer error: ${response.status}, ${body}`)
           // if failed to get positive response, try again in a second
-          answerTimeout = setTimeout(() => getAnswer(connectionId), 1000)
+          if (!stopPolling) {
+            answerTimeout = setTimeout(() => getAnswer(connectionId), 1000)
+          }
         } catch (e) {
           this.console.log(`getAnswer error: ${e}`)
         }
