@@ -176,8 +176,10 @@ window.onload = () => {
           let response = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-answer`, { method: 'get' })
           let body = await response.text();
           if (response.ok && body !== "") {
-            console.log(`got answer for connectionId ${connectionId}. setting remote description`);
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(body)));
+            console.log(`got answer for connectionId ${connectionId}.`);
+            let answer = JSON.parse(body);
+            console.log(`got plugin id ${answer?.pluginId}. setting remote description`);
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
             console.log("after setting remote description");
             clearTimeout(answerTimeout)
             return;
@@ -235,7 +237,6 @@ window.onload = () => {
   })
 
   const deviceIdInput = document.querySelector('input#deviceId')
-  const useStunInput = document.querySelector('input#useStun')
   var deviceIdStored = localStorage.getItem('deviceId')
   if (deviceIdStored) {
     deviceIdInput.value = deviceIdStored
@@ -245,9 +246,8 @@ window.onload = () => {
       e.preventDefault()
       e.stopPropagation()
       const deviceId = deviceIdInput.value
-      const useStun = useStunInput.checked
       localStorage.setItem('deviceId', deviceId)
-      connectToWebRTC(deviceId, useStun)
+      connectToWebRTC(deviceId)
     }
   }
 
