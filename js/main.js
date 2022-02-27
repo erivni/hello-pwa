@@ -2,6 +2,7 @@ const CONNECTING = "TRYING TO CONNECT"
 const CONNECTED = "CONNECTED"
 const DISCONNECTED = "DISCONNECT, PLEASE HOLD"
 const FAILED_OR_CLOSED = "FAILURE. CHECK YOUR DEVICE."
+const CONNECT_TIMEOUT = "FAILURE. CONNECT TIMEOUT."
 const INITIAL = ""
 
 window.onload = () => {
@@ -61,7 +62,7 @@ window.onload = () => {
       el.classList.add('click_animate_error');
     }
 
-}
+  }
 
   const updateView = (msg) => {
     switch (msg) {
@@ -87,6 +88,8 @@ window.onload = () => {
 
       case FAILED_OR_CLOSED:
         text.innerHTML = FAILED_OR_CLOSED
+      case CONNECT_TIMEOUT:
+        text.innerHTML = CONNECT_TIMEOUT
         hide(spinner)
         show(messagePanel)
         currentView = messagePanel
