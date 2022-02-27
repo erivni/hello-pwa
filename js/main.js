@@ -128,10 +128,6 @@ window.onload = () => {
     }
 
     peerConnection.onicecandidate = async (event) => {
-      if (event.candidate != null) {
-        return //ignore event
-      }
-
       const sendOffer = async (offer) => {
         try {
           let connectionId;
@@ -148,8 +144,6 @@ window.onload = () => {
           }
           console.log(`got connectionId ${connectionId} from device id ${deviceId}`);
 
-          console.log(`sending offer with remote-control pluginType`);
-          offer.pluginType = "remote-control";
           // send offer to signaling server
           let sendOfferResponse = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-offer`, {
             method: 'put',
@@ -174,39 +168,21 @@ window.onload = () => {
         }
 
       }
-
-      let stopPolling = false;
-
-      // abort connection if no debug-answer is available after 30s
-      const answerTotalTimeout = setTimeout(() => {
-        updateView(CONNECT_TIMEOUT);
-        stopPolling = true;
-        console.error(`failed to get answer after 30s, aborting connection..`);
-        setTimeout(() => {
-          location.reload();
-        }, 7000);
-      }, 30 * 1000)
-
       const getAnswer = async (connectionId) => {
         try {
           console.log("trying to get answer..");
           let response = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-answer`, { method: 'get' })
           let body = await response.text();
           if (response.ok && body !== "") {
-            clearTimeout(answerTimeout);
-            clearTimeout(answerTotalTimeout);
             console.log(`got answer for connectionId ${connectionId}. setting remote description`);
-            let answer = JSON.parse(body);
-            console.log(`got pluginId ${answer.pluginId}`);
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(body)));
             console.log("after setting remote description");
+            clearTimeout(answerTimeout)
             return;
           }
           console.log(`failed to get answer error: ${response.status}, ${body}`)
           // if failed to get positive response, try again in a second
-          if (!stopPolling) {
-            answerTimeout = setTimeout(() => getAnswer(connectionId), 1000)
-          }
+          answerTimeout = setTimeout(() => getAnswer(connectionId), 1000)
         } catch (e) {
           this.console.log(`getAnswer error: ${e}`)
         }
@@ -257,7 +233,6 @@ window.onload = () => {
   })
 
   const deviceIdInput = document.querySelector('input#deviceId')
-  const useStunInput = document.querySelector('input#useStun')
   var deviceIdStored = localStorage.getItem('deviceId')
   if (deviceIdStored) {
     deviceIdInput.value = deviceIdStored
@@ -267,9 +242,8 @@ window.onload = () => {
       e.preventDefault()
       e.stopPropagation()
       const deviceId = deviceIdInput.value
-      const useStun = useStunInput.checked
       localStorage.setItem('deviceId', deviceId)
-      connectToWebRTC(deviceId, useStun)
+      connectToWebRTC(deviceId)
     }
   }
 
