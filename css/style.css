@@ -3,6 +3,7 @@
   --m-p-size: 5px;
   --remote-arrow-color: #7a7a7a;
   --remote-border-width: 5px;
+  --background-effect: #4287F5;
 }
 
 * {
@@ -131,21 +132,21 @@ form > input {
   background: white;
 }
 
-.click_animate {
-  animation: keyPressAnim 0.15s alternate;
+.remote > .button:active,
+.navigation > .button:active {
+  animation: keyPressAnim 0.15s alternate 10ms;
 }
 
-.click_animate_error {
-  animation: keyPressAnimError 0.15s alternate;
+.error {
+  --background-effect: #ffa99a;
 }
 
 @keyframes keyPressAnim {
-  to {background-color: #4287F5;}
+  to {
+    background-color: var(--background-effect);
+  }
 }
 
-@keyframes keyPressAnimError {
-  to {background-color: #FFA99A;}
-}
 .button.select {
   width: 45%;
   height: 45%;
@@ -229,4 +230,3 @@ form > input {
     justify-content: center;
   }
 }
-
