@@ -2,6 +2,7 @@ const CONNECTING = "TRYING TO CONNECT"
 const CONNECTED = "CONNECTED"
 const DISCONNECTED = "DISCONNECT, PLEASE HOLD"
 const FAILED_OR_CLOSED = "FAILURE. CHECK YOUR DEVICE."
+const CONNECT_TIMEOUT = "FAILURE. CONNECT TIMEOUT."
 const INITIAL = ""
 
 window.onload = () => {
@@ -42,7 +43,7 @@ window.onload = () => {
   const reveal = (ele) => {
     ele.classList.remove('hidden')
   }
-  
+
   const clickEffect = (el, success) => {
     keyPressAudio.play();
     if (navigator && navigator.vibrate) {
@@ -51,7 +52,7 @@ window.onload = () => {
     // Reset previous animation state which had already happened on the element.
     el.style.animation = 'none';
     el.offsetHeight; /* trigger reflow */
-    el.style.animation = null; 
+    el.style.animation = null;
     el.classList.remove('click_animate');
     el.classList.remove('click_animate_error');
 
@@ -61,7 +62,7 @@ window.onload = () => {
       el.classList.add('click_animate_error');
     }
 
-}
+  }
 
   const updateView = (msg) => {
     switch (msg) {
@@ -87,6 +88,8 @@ window.onload = () => {
 
       case FAILED_OR_CLOSED:
         text.innerHTML = FAILED_OR_CLOSED
+      case CONNECT_TIMEOUT:
+        text.innerHTML = CONNECT_TIMEOUT
         hide(spinner)
         show(messagePanel)
         currentView = messagePanel
@@ -97,16 +100,17 @@ window.onload = () => {
     }
   }
 
-  const connectToWebRTC = (deviceId) => {
+  const connectToWebRTC = (deviceId, useStun) => {
     updateView(CONNECTING)
     const signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
-    peerConnection = new RTCPeerConnection({ iceServers: [] });
+    let iceServersList = [];
+    if (useStun) {
+      iceServersList = [{urls: 'stun:stun.l.google.com:19302'}]
+    }
+    peerConnection = new RTCPeerConnection({ iceServers: iceServersList });
     dataChannel = peerConnection.createDataChannel('hyperscale', { ordered: true, maxPacketLifeTime: 3000 });
     dataChannel.onopen = () => { console.log("data channel has opened"); }
     dataChannel.onclose = (e) => { console.log("data channel has closed"); }
-    peerConnection.addTransceiver('video', { 'direction': 'sendrecv' })
-    peerConnection.addTransceiver('video', { 'direction': 'sendrecv' })
-    peerConnection.addTransceiver('audio', { 'direction': 'sendrecv' })
     peerConnection.onconnectionstatechange = (e) => {
       console.log(`connection state changed to ${peerConnection.connectionState}`)
       switch (peerConnection.connectionState) {
@@ -170,8 +174,10 @@ window.onload = () => {
           let response = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-answer`, { method: 'get' })
           let body = await response.text();
           if (response.ok && body !== "") {
-            console.log(`got answer for connectionId ${connectionId}. setting remote description`);
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(body)));
+            console.log(`got answer for connectionId ${connectionId}.`);
+            let answer = JSON.parse(body);
+            console.log(`got plugin id ${answer?.pluginId}. setting remote description`);
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
             console.log("after setting remote description");
             clearTimeout(answerTimeout)
             return;

@@ -69,15 +69,23 @@ html {
 form {
   display: grid;
   flex-direction: row;
-}
-
-form > input:first-of-type {
-  margin-bottom: calc(var(--m-p-size) * 2);
+  gap: calc(var(--m-p-size) * 2);
 }
 
 form > input {
   padding: var(--m-p-size);
   font-size: calc(var(--base-size) / 1.5);
+}
+
+form > label {
+  display: flex;
+  align-items: center;
+  gap: var(--m-p-size);
+}
+
+form label,
+form input[type="checkbox"] {
+  font-size: calc(var(--base-size) / 1.6);
 }
 
 .remote {
@@ -140,11 +148,15 @@ form > input {
 }
 
 @keyframes keyPressAnim {
-  to {background-color: #4287F5;}
+  to {
+    background-color: #4287f5;
+  }
 }
 
 @keyframes keyPressAnimError {
-  to {background-color: #FFA99A;}
+  to {
+    background-color: #ffa99a;
+  }
 }
 .button.select {
   width: 45%;
@@ -229,4 +241,3 @@ form > input {
     justify-content: center;
   }
 }
-
