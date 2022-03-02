@@ -42,26 +42,14 @@ window.onload = () => {
   const reveal = (ele) => {
     ele.classList.remove('hidden')
   }
-  
+
   const clickEffect = (el, success) => {
     keyPressAudio.play();
     if (navigator && navigator.vibrate) {
-        navigator.vibrate(150);
+      navigator.vibrate(150);
     }
-    // Reset previous animation state which had already happened on the element.
-    el.style.animation = 'none';
-    el.offsetHeight; /* trigger reflow */
-    el.style.animation = null; 
-    el.classList.remove('click_animate');
-    el.classList.remove('click_animate_error');
-
-    if (success) {
-      el.classList.add('click_animate');
-    } else {
-      el.classList.add('click_animate_error');
-    }
-
-}
+    remote.classList.toggle('error', !success) // change the button press color when error happens
+  }
 
   const updateView = (msg) => {
     switch (msg) {
@@ -139,7 +127,7 @@ window.onload = () => {
             connectionId = JSON.parse(body).connectionId;
           }
           console.log(`got connectionId ${connectionId} from device id ${deviceId}`);
-          
+
           // send offer to signaling server
           let sendOfferResponse = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-offer`, {
             method: 'put',
