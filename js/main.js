@@ -2,6 +2,7 @@ const CONNECTING = "TRYING TO CONNECT"
 const CONNECTED = "CONNECTED"
 const DISCONNECTED = "DISCONNECT, PLEASE HOLD"
 const FAILED_OR_CLOSED = "FAILURE. CHECK YOUR DEVICE."
+const CONNECT_TIMEOUT = "FAILURE. CONNECT TIMEOUT."
 const INITIAL = ""
 
 window.onload = () => {
@@ -75,6 +76,8 @@ window.onload = () => {
 
       case FAILED_OR_CLOSED:
         text.innerHTML = FAILED_OR_CLOSED
+      case CONNECT_TIMEOUT:
+        text.innerHTML = CONNECT_TIMEOUT
         hide(spinner)
         show(messagePanel)
         currentView = messagePanel
@@ -85,16 +88,17 @@ window.onload = () => {
     }
   }
 
-  const connectToWebRTC = (deviceId) => {
+  const connectToWebRTC = (deviceId, useStun) => {
     updateView(CONNECTING)
     const signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
-    peerConnection = new RTCPeerConnection({ iceServers: [] });
+    let iceServersList = [];
+    if (useStun) {
+      iceServersList = [{urls: 'stun:stun.l.google.com:19302'}]
+    }
+    peerConnection = new RTCPeerConnection({ iceServers: iceServersList });
     dataChannel = peerConnection.createDataChannel('hyperscale', { ordered: true, maxPacketLifeTime: 3000 });
     dataChannel.onopen = () => { console.log("data channel has opened"); }
     dataChannel.onclose = (e) => { console.log("data channel has closed"); }
-    peerConnection.addTransceiver('video', { 'direction': 'sendrecv' })
-    peerConnection.addTransceiver('video', { 'direction': 'sendrecv' })
-    peerConnection.addTransceiver('audio', { 'direction': 'sendrecv' })
     peerConnection.onconnectionstatechange = (e) => {
       console.log(`connection state changed to ${peerConnection.connectionState}`)
       switch (peerConnection.connectionState) {
@@ -112,6 +116,9 @@ window.onload = () => {
     }
 
     peerConnection.onicecandidate = async (event) => {
+      if ( event.candidate != null) {
+        return // ignore event until last candidate arrives..
+      }
       const sendOffer = async (offer) => {
         try {
           let connectionId;
@@ -128,6 +135,8 @@ window.onload = () => {
           }
           console.log(`got connectionId ${connectionId} from device id ${deviceId}`);
 
+          console.log(`sending offer with remote-control pluginType`);
+          offer.pluginType = "remote-control";
           // send offer to signaling server
           let sendOfferResponse = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-offer`, {
             method: 'put',
@@ -152,16 +161,29 @@ window.onload = () => {
         }
 
       }
+
+      let connectTimeout = setTimeout(async () => {
+        console.log(`failed to get an answer for too long. aborting connection..`);
+        updateView(CONNECT_TIMEOUT);
+        peerConnection.close();
+        await setTimeout(() => {
+          location.reload();
+        }, 7000)
+      }, 30 * 1000);
+
       const getAnswer = async (connectionId) => {
         try {
           console.log("trying to get answer..");
           let response = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-answer`, { method: 'get' })
           let body = await response.text();
           if (response.ok && body !== "") {
-            console.log(`got answer for connectionId ${connectionId}. setting remote description`);
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(body)));
+            console.log(`got answer for connectionId ${connectionId}.`);
+            let answer = JSON.parse(body);
+            console.log(`got plugin id ${answer?.pluginId}. setting remote description`);
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
             console.log("after setting remote description");
             clearTimeout(answerTimeout)
+            clearTimeout(connectTimeout)
             return;
           }
           console.log(`failed to get answer error: ${response.status}, ${body}`)
