@@ -116,6 +116,9 @@ window.onload = () => {
     }
 
     peerConnection.onicecandidate = async (event) => {
+      if ( event.candidate != null) {
+        return // ignore event until last candidate arrives..
+      }
       const sendOffer = async (offer) => {
         try {
           let connectionId;
@@ -158,6 +161,16 @@ window.onload = () => {
         }
 
       }
+
+      let connectTimeout = setTimeout(async () => {
+        console.log(`failed to get an answer for too long. aborting connection..`);
+        updateView(CONNECT_TIMEOUT);
+        peerConnection.close();
+        await setTimeout(() => {
+          location.reload();
+        }, 7000)
+      }, 30 * 1000);
+
       const getAnswer = async (connectionId) => {
         try {
           console.log("trying to get answer..");
@@ -170,6 +183,7 @@ window.onload = () => {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
             console.log("after setting remote description");
             clearTimeout(answerTimeout)
+            clearTimeout(connectTimeout)
             return;
           }
           console.log(`failed to get answer error: ${response.status}, ${body}`)
