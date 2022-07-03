@@ -33,7 +33,8 @@ window.onload = () => {
   // functions
 
   const show = (ele) => {
-    ele.scrollIntoView({ behavior: "smooth" })
+    seamless.scrollIntoView(ele, { behavior: "smooth" });
+    //ele.scrollIntoView({ behavior: "smooth" })
   }
 
   const hide = (ele) => {
