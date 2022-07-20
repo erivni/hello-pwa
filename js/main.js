@@ -27,6 +27,9 @@ window.onload = () => {
   const text = document.querySelector('#text')
   const spinner = document.querySelector('#spinner')
   const closeButton = document.querySelector('.footer > button')
+  const sliderVolumeInput = document.querySelector('#slider-volume-input')
+  const sliderVolumeOutput = document.querySelector('#slider-volume-output')
+
   let currentView = INITIAL
   let keyPressAudio = new Audio('./audio/press.wav');
 
@@ -94,7 +97,7 @@ window.onload = () => {
     const signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
     let iceServersList = [];
     if (useStun) {
-      iceServersList = [{urls: 'stun:stun.l.google.com:19302'}]
+      iceServersList = [{ urls: 'stun:stun.l.google.com:19302' }]
     }
     peerConnection = new RTCPeerConnection({ iceServers: iceServersList });
     dataChannel = peerConnection.createDataChannel('hyperscale', { ordered: true, maxPacketLifeTime: 3000 });
@@ -117,7 +120,7 @@ window.onload = () => {
     }
 
     peerConnection.onicecandidate = async (event) => {
-      if ( event.candidate != null) {
+      if (event.candidate != null) {
         return // ignore event until last candidate arrives..
       }
       const sendOffer = async (offer) => {
@@ -237,6 +240,20 @@ window.onload = () => {
       clearTimeout(answerTimeout)
     }
     updateView(INITIAL)
+  })
+
+  sliderVolumeInput.addEventListener('change', (e) => {
+    e.preventDefault()
+    const msg = JSON.stringify({ "type": "volume", "percent": parseInt(e.target.value) })
+    try {
+      dataChannel.send(msg)
+    } catch (err) {
+      console.error(`Failed to send message ${msg}, ${err.toString()}`);
+    }
+  })
+  sliderVolumeInput.addEventListener('input', (e) => {
+    e.preventDefault()
+    sliderVolumeOutput.textContent = `${e.target.value}%`
   })
 
   const deviceIdInput = document.querySelector('input#deviceId')
