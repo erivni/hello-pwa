@@ -51,7 +51,7 @@ window.onload = () => {
   const clickEffect = (el, success) => {
     keyPressAudio.play();
     if (navigator && navigator.vibrate) {
-      navigator.vibrate(150);
+      navigator.vibrate(20);
     }
     remote.classList.toggle('error', !success) // change the button press color when error happens
   }
