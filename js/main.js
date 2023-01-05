@@ -92,14 +92,13 @@ window.onload = () => {
     }
   }
 
-  const connectToWebRTC = (deviceId, useStun) => {
+  const connectToWebRTC = (deviceId, prod) => {
     updateView(CONNECTING)
-    const signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
-    let iceServersList = [];
-    if (useStun) {
-      iceServersList = [{ urls: 'stun:stun.l.google.com:19302' }]
+    let signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
+    if (prod) {
+      signalingServer = "http://signaling.active.streaming.synamedia.com:9090"
     }
-    peerConnection = new RTCPeerConnection({ iceServers: iceServersList });
+    peerConnection = new RTCPeerConnection({ iceServers: [] });
     dataChannel = peerConnection.createDataChannel('hyperscale', { ordered: true, maxPacketLifeTime: 3000 });
     dataChannel.onopen = () => { console.log("data channel has opened"); }
     dataChannel.onclose = (e) => { console.log("data channel has closed"); }
@@ -256,6 +255,11 @@ window.onload = () => {
     sliderVolumeOutput.textContent = `${e.target.value}%`
   })
 
+  const prodInput = document.querySelector('input#prod')
+  var prodValueStored = localStorage.getItem('isProdDevice')
+  if (prodValueStored) {
+    prodInput.checked = JSON.parse(prodValueStored)
+  }
   const deviceIdInput = document.querySelector('input#deviceId')
   var deviceIdStored = localStorage.getItem('deviceId')
   if (deviceIdStored) {
@@ -266,8 +270,10 @@ window.onload = () => {
       e.preventDefault()
       e.stopPropagation()
       const deviceId = deviceIdInput.value
+      const prodDevice = prodInput.checked
       localStorage.setItem('deviceId', deviceId)
-      connectToWebRTC(deviceId)
+      localStorage.setItem('isProdDevice', prodDevice)
+      connectToWebRTC(deviceId, prodDevice)
     }
   }
 
