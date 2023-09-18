@@ -17,7 +17,6 @@ window.onload = () => {
   // connection
   let peerConnection = null
   let dataChannel = null
-  let answerTimeout = null
 
   // elements
   const initial = document.querySelector('.f-screen')
@@ -92,9 +91,9 @@ window.onload = () => {
     }
   }
 
-  const connectToWebRTC = (deviceId, useStun) => {
+  const connectToWebRTC = (deviceId, token, useStun, useDev) => {
     updateView(CONNECTING)
-    const signalingServer = "http://signaling.hyperscale.coldsnow.net:9090"
+    const messageBrokerServer = `https://hyperscale-message-broker-main.ingress.active${ useDev ? '.dev' : ''}.streaming.synamedia.com`
     let iceServersList = [];
     if (useStun) {
       iceServersList = [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -123,91 +122,56 @@ window.onload = () => {
       if (event.candidate != null) {
         return // ignore event until last candidate arrives..
       }
+
       const sendOffer = async (offer) => {
         try {
-          let connectionId;
-          // get connectionId by deviceId
-          let response = await fetch(`${signalingServer}/signaling/1.0/connections?deviceId=${deviceId}`, { method: 'get', headers: { 'Accept': 'application/json' } });
-          let body = await response.text();
-          if (body !== "") {
-            let jsonBody = JSON.parse(body);
-            if (jsonBody.error) {
-              console.log(`failed to get connection id for device ${deviceId}: ${body}`);
-              return;
-            }
-            connectionId = JSON.parse(body).connectionId;
+          const offerBody = {
+            payload: {
+              type: "pluginOffer",
+              offer: offer
+            },
+            target: "transcontainer",
+            origin: "internal",
+            eventName: "pluginOffer",
           }
-          console.log(`got connectionId ${connectionId} from device id ${deviceId}`);
-
-          console.log(`sending offer with remote-control pluginType`);
-          offer.pluginType = "remote-control";
-          // send offer to signaling server
-          let sendOfferResponse = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-offer`, {
-            method: 'put',
+          let sendOfferResponse = await fetch(`${messageBrokerServer}/message-broker/1.0/messages/devices/${deviceId}?wait=true`, {
+            method: 'post',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': "Bearer " + token,
             },
-            body: JSON.stringify(offer)
+            body: JSON.stringify(offerBody)
           })
 
-          if (sendOfferResponse.status !== 201) {
-            console.log(`error putting debug offer: ${response.statusText}`)
+          if (sendOfferResponse.status !== 200) {
+            console.log(`error posting debug offer to message broker: ${sendOfferResponse.statusText}`)
             return;
           }
 
-          body = await sendOfferResponse.text()
-
-          console.log(`finished posting debug offer. response: ${sendOfferResponse.status} ${body}`);
-          return connectionId;
+          const body = await sendOfferResponse.json()
+          return body.payload;
         } catch (e) {
           console.log(`error sending debug offer: ${e.toString()}`)
           return;
         }
-
-      }
-
-      let connectTimeout = setTimeout(async () => {
-        console.log(`failed to get an answer for too long. aborting connection..`);
-        updateView(CONNECT_TIMEOUT);
-        peerConnection.close();
-        await setTimeout(() => {
-          location.reload();
-        }, 7000)
-      }, 30 * 1000);
-
-      const getAnswer = async (connectionId) => {
-        try {
-          console.log("trying to get answer..");
-          let response = await fetch(`${signalingServer}/signaling/1.0/connections/${connectionId}/debug-answer`, { method: 'get' })
-          let body = await response.text();
-          if (response.ok && body !== "") {
-            console.log(`got answer for connectionId ${connectionId}.`);
-            let answer = JSON.parse(body);
-            console.log(`got plugin id ${answer?.pluginId}. setting remote description`);
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-            console.log("after setting remote description");
-            clearTimeout(answerTimeout)
-            clearTimeout(connectTimeout)
-            return;
-          }
-          console.log(`failed to get answer error: ${response.status}, ${body}`)
-          // if failed to get positive response, try again in a second
-          answerTimeout = setTimeout(() => getAnswer(connectionId), 1000)
-        } catch (e) {
-          this.console.log(`getAnswer error: ${e}`)
-        }
-      }
+      };
 
       if (peerConnection && event.candidate === null) {
         let offer = Object.assign({}, peerConnection.localDescription.toJSON());
+        offer.pluginType = "remote-control";
         offer.deviceId = deviceId;
-        let connectionId = await sendOffer(offer);
-        if (connectionId) {
-          console.log("starting to wait for answer");
-          getAnswer(connectionId)
+
+        let answer = await sendOffer(offer);
+        if (answer) {
+            console.log(`got plugin id ${answer?.pluginId}. setting remote description`);
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+            console.log("after setting remote description");
+            clearTimeout(connectTimeout)
+            return;
+          }
         }
-      }
     }
+
     peerConnection.createOffer().then(d => peerConnection.setLocalDescription(d)).catch(e => console.error(e));
   }
 
@@ -231,13 +195,10 @@ window.onload = () => {
   })
 
   closeButton.addEventListener('click', (e) => {
-    console.log({ peerConnection, dataChannel, answerTimeout });
+    console.log({ peerConnection, dataChannel });
     if (peerConnection) {
       console.log("closing peer connection")
       peerConnection.close()
-    }
-    if (answerTimeout) {
-      clearTimeout(answerTimeout)
     }
     updateView(INITIAL)
   })
@@ -257,17 +218,29 @@ window.onload = () => {
   })
 
   const deviceIdInput = document.querySelector('input#deviceId')
-  var deviceIdStored = localStorage.getItem('deviceId')
+  let deviceIdStored = localStorage.getItem('deviceId')
   if (deviceIdStored) {
     deviceIdInput.value = deviceIdStored
   }
+  const tokenInput = document.querySelector('input#token')
+  let tokenStored = localStorage.getItem('token')
+  if (tokenStored) {
+    tokenInput.value = tokenStored
+  }
+
   if (form) {
     form.onsubmit = (e) => {
       e.preventDefault()
       e.stopPropagation()
       const deviceId = deviceIdInput.value
       localStorage.setItem('deviceId', deviceId)
-      connectToWebRTC(deviceId)
+      const token = tokenInput.value
+      localStorage.setItem('token', token)
+
+      const useStun = document.querySelector('input#useStun').checked
+      const useDev = document.querySelector('input#useDev').checked
+
+      connectToWebRTC(deviceId, token, useStun, useDev)
     }
   }
 
