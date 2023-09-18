@@ -203,19 +203,19 @@ window.onload = () => {
     updateView(INITIAL)
   })
 
-  sliderVolumeInput.addEventListener('change', (e) => {
-    e.preventDefault()
-    const msg = JSON.stringify({ "type": "volume", "percent": parseInt(e.target.value) })
-    try {
-      dataChannel.send(msg)
-    } catch (err) {
-      console.error(`Failed to send message ${msg}, ${err.toString()}`);
-    }
-  })
-  sliderVolumeInput.addEventListener('input', (e) => {
-    e.preventDefault()
-    sliderVolumeOutput.textContent = `${e.target.value}%`
-  })
+  // sliderVolumeInput.addEventListener('change', (e) => {
+  //   e.preventDefault()
+  //   const msg = JSON.stringify({ "type": "volume", "percent": parseInt(e.target.value) })
+  //   try {
+  //     dataChannel.send(msg)
+  //   } catch (err) {
+  //     console.error(`Failed to send message ${msg}, ${err.toString()}`);
+  //   }
+  // })
+  // sliderVolumeInput.addEventListener('input', (e) => {
+  //   e.preventDefault()
+  //   sliderVolumeOutput.textContent = `${e.target.value}%`
+  // })
 
   const deviceIdInput = document.querySelector('input#deviceId')
   let deviceIdStored = localStorage.getItem('deviceId')

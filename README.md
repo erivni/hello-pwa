@@ -1,25 +1,15 @@
-# Hello-PWA
-The classic Hello World program as a Progressive Web App
-
-![Hello World Screenshot](./screenshot.jpg "Hello World Screenshot")
+# RemoteControl
+The classic Remote Control program as a Progressive Web App
 
 ## What It Is
 
-A simple PWA demo that displays the text "Hello, World!" utilizing an app manifest, service workers and caching. This demo is written in plain-vanilla HTML, CSS and Javascript (ES6). It has no dependencies.
+A simple PWA demo that displays the remote control. This demo is written in plain-vanilla HTML, CSS and Javascript (ES6). It has no dependencies.
 
-I've also written a tutorial to go along with the code. Read it on Medium:
+### Development
 
-https://medium.com/james-johnson/a-simple-progressive-web-app-tutorial-f9708e5f2605
+switch to `gh-pages` branch
 
-## Demo
+run:
+`python3 -m http.server 3000`
 
-https://jamesjohnson280.github.io/hello-pwa/
-
-## Browser Compatibility
-
-Hello PWA has been tested in the following browsers:
-
-* Chrome 67 (Windows and Android)
-* Firefox 60
-* Safari 11
-* Edge 42
+open `http://localhost:3000`
