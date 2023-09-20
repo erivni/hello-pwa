@@ -91,7 +91,7 @@ window.onload = () => {
     }
   }
 
-  const connectToWebRTC = (deviceId, token, useStun, useDev) => {
+  const connectToWebRTC = (deviceId, token, useStun, useDev, useLocal) => {
     updateView(CONNECTING)
     const messageBrokerServer = `https://hyperscale-message-broker-main.ingress.active${ useDev ? '.dev' : ''}.streaming.synamedia.com`
     let iceServersList = [];
@@ -125,7 +125,7 @@ window.onload = () => {
 
       const sendOffer = async (offer) => {
         try {
-          const offerBody = {
+          let offerBody = {
             payload: {
               type: "pluginOffer",
               offer: offer
@@ -134,7 +134,13 @@ window.onload = () => {
             origin: "internal",
             eventName: "pluginOffer",
           }
-          let sendOfferResponse = await fetch(`${messageBrokerServer}/message-broker/1.0/messages/devices/${deviceId}?wait=true`, {
+
+          const url = useLocal ? `http://localhost:9999/message` : `${messageBrokerServer}/message-broker/1.0/messages/devices/${deviceId}?wait=true`;
+          if (useLocal) {
+            offerBody.payload = JSON.stringify(offerBody.payload);
+          }
+
+          let sendOfferResponse = await fetch(url, {
             method: 'post',
             headers: {
               'Content-Type': 'application/json',
@@ -149,7 +155,7 @@ window.onload = () => {
           }
 
           const body = await sendOfferResponse.json()
-          return body.payload;
+          return body.payload ?? body;
         } catch (e) {
           console.log(`error sending debug offer: ${e.toString()}`)
           return;
@@ -239,8 +245,9 @@ window.onload = () => {
 
       const useStun = document.querySelector('input#useStun').checked
       const useDev = document.querySelector('input#useDev').checked
+      const useLocal = document.querySelector('input#useLocal').checked
 
-      connectToWebRTC(deviceId, token, useStun, useDev)
+      connectToWebRTC(deviceId, token, useStun, useDev, useLocal)
     }
   }
 
