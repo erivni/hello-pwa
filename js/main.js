@@ -172,7 +172,6 @@ window.onload = () => {
             console.log(`got plugin id ${answer?.pluginId}. setting remote description`);
             await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
             console.log("after setting remote description");
-            clearTimeout(connectTimeout)
             return;
           }
         }
